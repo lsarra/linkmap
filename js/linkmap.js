@@ -677,7 +677,7 @@ function loadSettings() {
 
     if (codeBox.value == "") {
         // Load default document
-        fetch("/examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
+        fetch("examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
             codeBox.value = res;
             // Trigger the rendering of the textarea to draw the map
             parseText();
