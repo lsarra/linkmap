@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title and Icon of the page -->
+    <title>LinkMap</title>
+    <link rel="icon" href="fonts/favicon.svg">
+
+    <!-- Styles -->
+    <!-- Icon fonts -->
+    <link rel="stylesheet" href="css/fonts.css">
+    <!-- Interface and LinkMap styles -->
+    <link rel="stylesheet" href="css/linkmap.css">
+</head>
+
+<body>
+    <!-- Pop up that shows the description of a link -->
+    <div id="infobox">
+        <h1 id="infobox-title"></h1>
+        <p id="infobox-description"></p>
+    </div>
+
+    <!-- Small window with a few settings -->
+    <div class="toolbox">
+        <p id="icon-code" class="selected">
+            <i class="material-icons md-48">text_snippet</i>
+        </p>
+        <p id="icon-editing">
+            <i class="material-icons md-48">build</i>
+        </p>
+        <p id="icon-save">
+            <i class="material-icons md-48">save</i>
+        </p>
+        <p id="icon-help">
+            <i class="material-icons md-48">help</i>
+        </p>
+    </div>
+
+    <!-- Text area that allows to edit the text that describes the linkmap in real time -->
+    <textarea id="codebox" class="visible"></textarea>
+
+    <!-- Place where the linkmap is built -->
+    <div id="linkmap" class="container"></div>
+
+    <!-- Code -->
+    <script src="js/linkmap.js"></script>
+</body>
+
+</html>
