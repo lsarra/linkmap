@@ -76,7 +76,9 @@ iconEditing.onclick = (e) => {
 // Download current text to user's disk
 let iconSave = document.querySelector("#icon-save");
 iconSave.onclick = function () {
-    var path = document.URL.replace("linkmap.html", "")
+    // var path = document.URL.replace("linkmap.html", "")
+    // Always include the correct absolute path
+    var path = "https://lsarra.github.io/linkmap/"
 
     var doc = `<a>${path}</a>
                <code>${codeBox.value}</code>
