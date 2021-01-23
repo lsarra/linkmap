@@ -412,7 +412,6 @@ function trackHierarchy(child, parent) {
 
             // Fix indentation of all children
             let replaceString = new RegExp(`#{${child.codeInfo.indentation}}(#*.*\\[)`, "g")
-            console.log(replaceString)
             codeToAdd = codeToAdd.replaceAll(replaceString, "#".repeat(parent.codeInfo.indentation + 1) + "$1")
 
             // Fix the indentation of the current block itself
@@ -896,13 +895,12 @@ let clean = (piece) => (piece
     .replace(/((^|\n)(?:[^\/\\]|\/[^\/]|\\.)*?)\s*\/\/[^\n]*/g, '$1')
     .replace(/\n\s*/g, '')
 );
-window.regex = ({ raw }, ...interpolations) => {
-    console.log(interpolations)
-    return new RegExp(interpolations.reduce(
+window.regex = ({ raw }, ...interpolations) => (
+    new RegExp(interpolations.reduce(
         (regex, insert, index) => (regex + insert + clean(raw[index + 1])),
         clean(raw[0])
     ))
-};
+);
 
 // Escape an entire string in regex
 // https://stackoverflow.com/a/6969486
