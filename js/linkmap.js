@@ -22,14 +22,51 @@ let infoBoxDescription = document.querySelector("#infobox-description")
 // Default spacing between objects (in px)
 let standardMargin = 20;
 
+
+
+document.onkeydown = (e) => {
+    if (e.code === 'Escape') {
+        escapeAction()
+    }
+
+    if (document.activeElement !== codeBox) {
+        console.log(e.code)
+        let delta = 75;
+        // Translation goes in the opposite direction, because
+        // we translate the background instead of moving the camera!
+        let movement = {
+            "ArrowLeft": { dX: delta, dY: 0 },
+            "ArrowRight": { dX: -delta, dY: 0 },
+            "ArrowUp": { dX: 0, dY: delta },
+            "ArrowDown": { dX: 0, dY: -delta }
+        }
+
+        if (movement[e.code]) {
+            let currentTransform = getTransformScale(linkMap.style.transform);
+            console.log("trigger",movement[e.code])
+            linkMap.style.transform = setTransformScale(
+                dX = parseFloat(currentTransform[0]) + movement[e.code].dX,
+                dY = parseFloat(currentTransform[1]) + movement[e.code].dY,
+                scale = currentTransform[2]);
+        }
+    }
+
+}
+
+
+
 // Set up toolbox buttons:
 // Show or hide the textarea panel
-let iconCode = document.querySelector("#icon-code");
-iconCode.onclick = (e) => {
+escapeAction = () => {
     showCode = !showCode;
     toggleCodePanel(showCode)
     saveSettings();
 }
+
+let iconCode = document.querySelector("#icon-code");
+iconCode.onclick = escapeAction
+
+
 
 // Toggle drag mode
 let iconEditing = document.querySelector("#icon-editing");
@@ -698,10 +735,10 @@ function pasteURL(e) {
 
     if (paste.startsWith("http")) {
         finalIndex = codeBox.selectionStart;
-        codeBox.value = stringSubstituteAt(codeBox.value,finalIndex, 0, `\n[](${paste})\n`);
+        codeBox.value = stringSubstituteAt(codeBox.value, finalIndex, 0, `\n[](${paste})\n`);
         parseText();
         codeBox.select();
-        codeBox.selectionStart = finalIndex+2;
+        codeBox.selectionStart = finalIndex + 2;
         codeBox.selectionEnd = codeBox.selectionStart;
         e.preventDefault();
     }
