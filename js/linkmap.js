@@ -697,10 +697,8 @@ function pasteURL(e) {
     let paste = (e.clipboardData || window.clipboardData).getData('text');
 
     if (paste.startsWith("http")) {
-        let m = codeBox.value.match(/#+/);
-        finalIndex = (m) ? m.index - 1 : 0;
-
-        codeBox.value = stringSubstituteAt(codeBox.value,finalIndex, 0, `\n[](${paste}))\n`);
+        finalIndex = codeBox.selectionStart;
+        codeBox.value = stringSubstituteAt(codeBox.value,finalIndex, 0, `\n[](${paste})\n`);
         parseText();
         codeBox.select();
         codeBox.selectionStart = finalIndex+2;
