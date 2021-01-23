@@ -91,7 +91,7 @@ iconSave.onclick = function () {
 // Function to load the dependencies of a linkmap file
 function load_dependencies() {
     let path = document.querySelector("a").innerHTML;
-    let myLinkmap = document.querySelector("code").innerHTML;
+    myLinkmap = document.querySelector("code").innerHTML;
     fetch(`${path}linkmap.html`).then(res => res.text().then(res => {
         res = res.replaceAll(`"css/`, `"${path}css/`)
             .replaceAll(`"js/`, `"${path}js/`)
