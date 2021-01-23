@@ -379,8 +379,9 @@ function trackHierarchy(child, parent) {
     if (child.codeInfo) {
         let currentCode = codeBox.value;
 
+        // Find the extent of the root block
         let finalIndex = 0
-        let m = currentCode.match(/#+/);
+        let m = currentCode.match(forcedHeaderPattern)
         if (m) finalIndex = m.index - 1;
 
         // In case the code starts with a container
@@ -395,7 +396,7 @@ function trackHierarchy(child, parent) {
 
             let m = currentCode.slice(match.index + parent.codeInfo.indentation,
                 match.index + match.code.length + parent.codeInfo.indentation)
-                .match(/#+/);
+            m = m.match(forcedHeaderPattern);
             if (m) {
                 finalIndex = match.index + parent.codeInfo.indentation + m.index - 1;
             }
@@ -408,8 +409,13 @@ function trackHierarchy(child, parent) {
             let match = trackContainer(initialCode, child)
             // Change a conteiner's indentation if required
             codeToAdd = match.code
-            let replaceString = new RegExp(`#{${child.codeInfo.indentation}}(#*)`, "g")
+
+            // Fix indentation of all children
+            let replaceString = new RegExp(`#{${child.codeInfo.indentation}}(#*.*\\[)`, "g")
+            console.log(replaceString)
             codeToAdd = codeToAdd.replaceAll(replaceString, "#".repeat(parent.codeInfo.indentation + 1) + "$1")
+
+            // Fix the indentation of the current block itself
             codeToAdd = codeToAdd.replace(/#*/, "#".repeat(parent.codeInfo.indentation + 1))
         }
 
@@ -441,6 +447,7 @@ function trackIndex(threshold, delta) {
 }
 
 function trackContainer(txt, child) {
+    // Returns the exact location of the given container in the code and including all children links
     let beginning = child.codeInfo.matchedPattern;
     let arr = [escapeRegExp(beginning), child.codeInfo.indentation]
     let searchPattern = headerPattern.replace(/\@/g, () => arr.shift());
@@ -889,12 +896,13 @@ let clean = (piece) => (piece
     .replace(/((^|\n)(?:[^\/\\]|\/[^\/]|\\.)*?)\s*\/\/[^\n]*/g, '$1')
     .replace(/\n\s*/g, '')
 );
-window.regex = ({ raw }, ...interpolations) => (
-    new RegExp(interpolations.reduce(
+window.regex = ({ raw }, ...interpolations) => {
+    console.log(interpolations)
+    return new RegExp(interpolations.reduce(
         (regex, insert, index) => (regex + insert + clean(raw[index + 1])),
         clean(raw[0])
     ))
-);
+};
 
 // Escape an entire string in regex
 // https://stackoverflow.com/a/6969486
@@ -985,9 +993,9 @@ let linkPatternSingle = regex`
     
 )?
 `
-linkPattern = new RegExp(linkPatternSingle, "g");
-
-
+let linkPattern = new RegExp(linkPatternSingle, "g");
+// Make the # tag mandatory
+let forcedHeaderPattern = /(?<container>#+).*\[(?<title>[^\]]*)\]\((?<link>[^\)]*)\)/
 
 //********************************/
 // Load settings
