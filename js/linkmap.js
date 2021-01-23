@@ -101,10 +101,10 @@ function load_dependencies() {
         script.type = 'text/javascript';
         script.src = `${path}js/linkmap.js`;
         document.body.appendChild(script);
-        script.onload = () => {
+        setInterval(() => {
             codeBox.value = myLinkmap;
             parseText();
-        }
+        }, 500)
     }))
 }
 
