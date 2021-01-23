@@ -101,6 +101,10 @@ function load_dependencies() {
         script.type = 'text/javascript';
         script.src = `${path}js/linkmap.js`;
         document.body.appendChild(script);
+
+        // For some reason the load event is fired too early
+        // A manual timer works
+        // TODO: fix by triggering the proper event!
         setInterval(() => {
             codeBox.value = myLinkmap;
             parseText();
