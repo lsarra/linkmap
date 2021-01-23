@@ -22,14 +22,48 @@ let infoBoxDescription = document.querySelector("#infobox-description")
 // Default spacing between objects (in px)
 let standardMargin = 20;
 
+
+
+document.onkeydown = (e) => {
+    if (e.code === 'Escape') {
+        escapeAction()
+    }
+
+    if (document.activeElement !== codeBox) {
+        let delta = 75;
+        // Translation goes in the opposite direction, because
+        // we translate the background instead of moving the camera!
+        let movement = {
+            "ArrowLeft": { dX: delta, dY: 0 },
+            "ArrowRight": { dX: -delta, dY: 0 },
+            "ArrowUp": { dX: 0, dY: delta },
+            "ArrowDown": { dX: 0, dY: -delta }
+        }
+
+        if (movement[e.code]) {
+            let currentTransform = getTransformScale(linkMap.style.transform);
+            linkMap.style.transform = setTransformScale(
+                dX = parseFloat(currentTransform[0]) + movement[e.code].dX,
+                dY = parseFloat(currentTransform[1]) + movement[e.code].dY,
+                scale = currentTransform[2]);
+        }
+    }
+
+}
+
+
 // Set up toolbox buttons:
 // Show or hide the textarea panel
-let iconCode = document.querySelector("#icon-code");
-iconCode.onclick = (e) => {
+escapeAction = () => {
     showCode = !showCode;
     toggleCodePanel(showCode)
     saveSettings();
 }
+
+let iconCode = document.querySelector("#icon-code");
+iconCode.onclick = escapeAction
+
+
 
 // Toggle drag mode
 let iconEditing = document.querySelector("#icon-editing");
@@ -42,9 +76,45 @@ iconEditing.onclick = (e) => {
 // Download current text to user's disk
 let iconSave = document.querySelector("#icon-save");
 iconSave.onclick = function () {
-    download("linkmap.md", codeBox.value)
+    // var path = document.URL.replace("linkmap.html", "")
+    // Always include the correct absolute path
+    var path = "https://lsarra.github.io/linkmap/"
+
+    var doc = `<a>${path}</a>
+               <code>${codeBox.value}</code>
+               <script>${load_dependencies.toString()}
+               load_dependencies();
+               </script>`
+
+    download("linkmap.html", doc)
     saveSettings();
 }
+
+// Function to load the dependencies of a linkmap file
+function load_dependencies() {
+    let path = document.querySelector("a").innerHTML;
+    myLinkmap = document.querySelector("code").innerHTML;
+    fetch(`${path}linkmap.html`).then(res => res.text().then(res => {
+        res = res.replaceAll(`"css/`, `"${path}css/`)
+            .replaceAll(`"js/`, `"${path}js/`)
+            .replaceAll(`"fonts/`, `"${path}fonts/`)
+        document.querySelector("html").innerHTML = res;
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = `${path}js/linkmap.js`;
+        document.body.appendChild(script);
+
+        // For some reason the load event is fired too early
+        // A manual timer works
+        // TODO: fix by triggering the proper event!
+        setTimeout(() => {
+            codeBox.value = myLinkmap;
+            parseText();
+        }, 500)
+    }))
+}
+
+
 
 // Show the information popup
 let iconHelp = document.querySelector("#icon-help");
@@ -57,8 +127,7 @@ Activate the tool icon to drag boxes around.
 Write text in the line after a link to display in a panel. 
 Add 'width|height|' before color to produce larger rectangles. 
 Copy&paste wiki text into any text editor to save it. 
-Press Escape to close this panel. 
-V0.8 (C) 2020 Florian Marquardt (MIT license)`
+V0.9 (C) 2021 Florian Marquardt, Leopoldo Sarra (MIT license)`
     showInfoBox("About", helpText, { X: 60, Y: 50 });
     iconHelp.classList.add("selected");
 }
@@ -340,8 +409,9 @@ function trackHierarchy(child, parent) {
     if (child.codeInfo) {
         let currentCode = codeBox.value;
 
+        // Find the extent of the root block
         let finalIndex = 0
-        let m = currentCode.match(/#+/);
+        let m = currentCode.match(forcedHeaderPattern)
         if (m) finalIndex = m.index - 1;
 
         // In case the code starts with a container
@@ -356,7 +426,7 @@ function trackHierarchy(child, parent) {
 
             let m = currentCode.slice(match.index + parent.codeInfo.indentation,
                 match.index + match.code.length + parent.codeInfo.indentation)
-                .match(/#+/);
+            m = m.match(forcedHeaderPattern);
             if (m) {
                 finalIndex = match.index + parent.codeInfo.indentation + m.index - 1;
             }
@@ -369,8 +439,12 @@ function trackHierarchy(child, parent) {
             let match = trackContainer(initialCode, child)
             // Change a conteiner's indentation if required
             codeToAdd = match.code
-            let replaceString = new RegExp(`#{${child.codeInfo.indentation}}(#*)`, "g")
+
+            // Fix indentation of all children
+            let replaceString = new RegExp(`#{${child.codeInfo.indentation}}(#*.*\\[)`, "g")
             codeToAdd = codeToAdd.replaceAll(replaceString, "#".repeat(parent.codeInfo.indentation + 1) + "$1")
+
+            // Fix the indentation of the current block itself
             codeToAdd = codeToAdd.replace(/#*/, "#".repeat(parent.codeInfo.indentation + 1))
         }
 
@@ -402,6 +476,7 @@ function trackIndex(threshold, delta) {
 }
 
 function trackContainer(txt, child) {
+    // Returns the exact location of the given container in the code and including all children links
     let beginning = child.codeInfo.matchedPattern;
     let arr = [escapeRegExp(beginning), child.codeInfo.indentation]
     let searchPattern = headerPattern.replace(/\@/g, () => arr.shift());
@@ -676,12 +751,20 @@ function loadSettings() {
     toggleCodePanel(showCode)
 
     if (codeBox.value == "") {
-        // Load default document
-        fetch("https://lsarra.github.io/linkmap/examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
-            codeBox.value = res;
-            // Trigger the rendering of the textarea to draw the map
-            parseText();
-        }))
+
+        // restore saved linkmap
+        if (typeof myLinkmap !== "undefined") {
+            codeBox.value = myLinkmap;
+        } else {
+
+            // Load default document
+            fetch("https://lsarra.github.io/linkmap/examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
+                codeBox.value = res;
+                // Trigger the rendering of the textarea to draw the map
+                parseText();
+            }))
+        }
+
     }
 
 }
@@ -697,13 +780,11 @@ function pasteURL(e) {
     let paste = (e.clipboardData || window.clipboardData).getData('text');
 
     if (paste.startsWith("http")) {
-        let m = codeBox.value.match(/#+/);
-        finalIndex = (m) ? m.index - 1 : 0;
-
-        codeBox.value = stringSubstituteAt(codeBox.value,finalIndex, 0, `\n[](${paste}))\n`);
+        finalIndex = codeBox.selectionStart;
+        codeBox.value = stringSubstituteAt(codeBox.value, finalIndex, 0, `\n[](${paste})\n`);
         parseText();
         codeBox.select();
-        codeBox.selectionStart = finalIndex+2;
+        codeBox.selectionStart = finalIndex + 2;
         codeBox.selectionEnd = codeBox.selectionStart;
         e.preventDefault();
     }
@@ -948,9 +1029,9 @@ let linkPatternSingle = regex`
     
 )?
 `
-linkPattern = new RegExp(linkPatternSingle, "g");
-
-
+let linkPattern = new RegExp(linkPatternSingle, "g");
+// Make the # tag mandatory
+let forcedHeaderPattern = /(?<container>#+).*\[(?<title>[^\]]*)\]\((?<link>[^\)]*)\)/
 
 //********************************/
 // Load settings
