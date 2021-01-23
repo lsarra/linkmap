@@ -77,13 +77,38 @@ iconEditing.onclick = (e) => {
 let iconSave = document.querySelector("#icon-save");
 iconSave.onclick = function () {
     var path = document.URL.replace("linkmap.html", "")
-    var doc = document.documentElement.innerHTML
-        .replaceAll(`"css/`, `"${path}css/`)
-        .replaceAll(`"js/`, `"${path}js/`)
-        .replaceAll(`"fonts/`, `"${path}fonts/`)
+
+    var doc = `<a>${path}</a>
+               <code>${codeBox.value}</code>
+               <script>${load_dependencies.toString()}
+               load_dependencies();
+               </script>`
+
     download("linkmap.html", doc)
     saveSettings();
 }
+
+// Function to load the dependencies of a linkmap file
+function load_dependencies() {
+    let path = document.querySelector("a").innerHTML;
+    let myLinkmap = document.querySelector("code").innerHTML;
+    fetch(`${path}linkmap.html`).then(res => res.text().then(res => {
+        res = res.replaceAll(`"css/`, `"${path}css/`)
+            .replaceAll(`"js/`, `"${path}js/`)
+            .replaceAll(`"fonts/`, `"${path}fonts/`)
+        document.querySelector("html").innerHTML = res;
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = `${path}js/linkmap.js`;
+        document.body.appendChild(script);
+        script.onload = () => {
+            codeBox.value = myLinkmap;
+            parseText();
+        }
+    }))
+}
+
+
 
 // Show the information popup
 let iconHelp = document.querySelector("#icon-help");
@@ -720,12 +745,20 @@ function loadSettings() {
     toggleCodePanel(showCode)
 
     if (codeBox.value == "") {
-        // Load default document
-        fetch("https://lsarra.github.io/linkmap/examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
-            codeBox.value = res;
-            // Trigger the rendering of the textarea to draw the map
-            parseText();
-        }))
+
+        // restore saved linkmap
+        if (typeof myLinkmap !== "undefined") {
+            codeBox.value = myLinkmap;
+        } else {
+
+            // Load default document
+            fetch("https://lsarra.github.io/linkmap/examples/deeplearning_formatted_2.md").then(res => res.text().then(res => {
+                codeBox.value = res;
+                // Trigger the rendering of the textarea to draw the map
+                parseText();
+            }))
+        }
+
     }
 
 }
