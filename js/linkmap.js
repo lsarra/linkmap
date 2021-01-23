@@ -96,8 +96,7 @@ Activate the tool icon to drag boxes around.
 Write text in the line after a link to display in a panel. 
 Add 'width|height|' before color to produce larger rectangles. 
 Copy&paste wiki text into any text editor to save it. 
-Press Escape to close this panel. 
-V0.8 (C) 2020 Florian Marquardt (MIT license)`
+V0.9 (C) 2021 Florian Marquardt, Leopoldo Sarra (MIT license)`
     showInfoBox("About", helpText, { X: 60, Y: 50 });
     iconHelp.classList.add("selected");
 }
