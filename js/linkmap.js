@@ -105,7 +105,7 @@ function load_dependencies() {
         // For some reason the load event is fired too early
         // A manual timer works
         // TODO: fix by triggering the proper event!
-        setInterval(() => {
+        setTimeout(() => {
             codeBox.value = myLinkmap;
             parseText();
         }, 500)
