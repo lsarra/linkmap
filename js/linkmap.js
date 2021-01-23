@@ -30,7 +30,6 @@ document.onkeydown = (e) => {
     }
 
     if (document.activeElement !== codeBox) {
-        console.log(e.code)
         let delta = 75;
         // Translation goes in the opposite direction, because
         // we translate the background instead of moving the camera!
@@ -43,7 +42,6 @@ document.onkeydown = (e) => {
 
         if (movement[e.code]) {
             let currentTransform = getTransformScale(linkMap.style.transform);
-            console.log("trigger",movement[e.code])
             linkMap.style.transform = setTransformScale(
                 dX = parseFloat(currentTransform[0]) + movement[e.code].dX,
                 dY = parseFloat(currentTransform[1]) + movement[e.code].dY,
@@ -52,7 +50,6 @@ document.onkeydown = (e) => {
     }
 
 }
-
 
 
 // Set up toolbox buttons:
@@ -79,7 +76,12 @@ iconEditing.onclick = (e) => {
 // Download current text to user's disk
 let iconSave = document.querySelector("#icon-save");
 iconSave.onclick = function () {
-    download("linkmap.md", codeBox.value)
+    var path = document.URL.replace("linkmap.html", "")
+    var doc = document.documentElement.innerHTML
+        .replaceAll(`"css/`, `"${path}css/`)
+        .replaceAll(`"js/`, `"${path}js/`)
+        .replaceAll(`"fonts/`, `"${path}fonts/`)
+    download("linkmap.html", doc)
     saveSettings();
 }
 
